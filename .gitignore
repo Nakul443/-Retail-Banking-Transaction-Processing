@@ -1,1 +1,25 @@
-/backend/node_modules
+# --- Backend / Python ---
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/prisma/client
+backend/*.py[cod]
+
+# --- Frontend / Node ---
+node_modules/
+frontend/node_modules/
+.next/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- General / System ---
+.DS_Store
+.vscode/
+.idea/
+*.log
+*.tmp
+.npm
