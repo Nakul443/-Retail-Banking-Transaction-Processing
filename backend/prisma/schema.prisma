@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. ENTITY & FINANCIAL GROUP
+// ==========================================
+
+model Account {
+  account_number      String        @id
+  customer_id         String
+  account_type        String
+  account_holder_name String
+  branch_code         String
+  iban                String?
+  swift_code          String?
+  sort_code           String?
+  account_open_date   DateTime?
+  account_status      String
+  mobile_number       String?
+  email_id            String?
+  pan_number          String?
+  customer_segment    String?
+  transactions        Transaction[]
+}
+
+model BalanceInformation {
+  transaction_id     String      @id
+  transaction        Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  opening_balance    Float
+  closing_balance    Float
+  available_balance  Float
+  hold_amount        Float
+  overdraft_limit    Float
+}
+
+// ==========================================
+// 2. CORE TRANSACTION & SECURITY GROUP
+// ==========================================
+
+model Transaction {
+  transaction_id       String   @id
+  reference_number     String
+  batch_id             String   // Required for File-wise Summaries
+  account_number       String
+  account              Account  @relation(fields: [account_number], references: [account_number])
+  
+  // Transaction Details
+  transaction_datetime DateTime
+  value_date           DateTime?
+  posting_date         DateTime?
+  transaction_type     String
+  transaction_code     String
+  description          String?
+  category             String?
+  priority             String?
+  mode                 String?
+  purpose              String?
+
+  // Relations
+  amount               Amount?
+  status               TransactionStatus?
+  security             AuthorizationSecurity?
+  channel              ChannelInformation?
+  beneficiary          BeneficiaryDetails?
+  balance              BalanceInformation?
+  compliance           ComplianceRegulatory?
+  audit                AuditOperational?
+  notification         NotificationCommunication?
+}
+
+model Amount {
+  transaction_id     String      @id
+  transaction        Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  transaction_amount Float
+  currency_code      String
+  exchange_rate      Float
+  converted_amount   Float
+  net_amount         Float
+  fees               Float       @default(0)
+  tax_amount         Float       @default(0)
+  cashback_amount    Float       @default(0)
+  base_currency      String?
+}
+
+model TransactionStatus {
+  transaction_id      String      @id
+  transaction         Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  status              String
+  status_code         String
+  settlement_status   String?
+  dispute_reference   String?
+  processing_stage    String?
+  retry_count         Int         @default(0)
+}
+
+model AuthorizationSecurity {
+  transaction_id         String      @id
+  transaction            Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  authorization_code     String?
+  authentication_method  String?
+  card_number_masked     String?
+  card_type              String?
+  risk_score             Float?
+  ip_reputation_score    Float?
+  biometric_score        Float?
+  is_step_up_auth        Boolean     @default(false)
+}
+
+model ChannelInformation {
+  transaction_id     String      @id
+  transaction        Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  channel_type       String
+  device_id          String?
+  merchant_id        String?
+  merchant_name      String?
+  location           String?
+  latitude           Float?
+  longitude          Float?
+  channel_latency_ms Int?
+}
+
+model BeneficiaryDetails {
+  transaction_id             String      @id
+  transaction                Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  beneficiary_name           String?
+  beneficiary_account_number String?
+  beneficiary_bank_name      String?
+  beneficiary_bank_code      String?
+  beneficiary_type           String?
+  beneficiary_pan            String?
+}
+
+// ==========================================
+// 3. ADMINISTRATIVE & COMPLIANCE GROUP
+// ==========================================
+
+model ComplianceRegulatory {
+  transaction_id          String      @id
+  transaction             Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  aml_flag                Boolean     @default(false)
+  kyc_status              String?
+  sanction_screening_flag Boolean     @default(false)
+  risk_category           String?
+  gdpr_applicable         Boolean     @default(false)
+  data_localisation_flag  Boolean     @default(true)
+}
+
+model AuditOperational {
+  transaction_id         String      @id
+  transaction            Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  created_by             String?
+  authorized_by          String?
+  created_timestamp      DateTime    @default(now())
+  last_updated_timestamp DateTime?
+  core_banking_module    String?
+  processing_time_ms     Int?
+  correlation_id         String?     @unique
+}
+
+model NotificationCommunication {
+  transaction_id          String      @id
+  transaction             Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  sms_alert_sent          Boolean     @default(false)
+  email_alert_sent        Boolean     @default(false)
+  whatsapp_alert_sent     Boolean     @default(false)
+  alert_delivery_status   String?
+  preferred_language      String?
+}
