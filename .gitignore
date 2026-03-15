@@ -4,6 +4,13 @@ backend/__pycache__/
 backend/.env
 backend/prisma/client
 backend/*.py[cod]
+/__pycache__/
+/backend/app/__pycache__/
+/backend/app/services/__pycache__/
+/backend/app/api/__pycache__/
+/backend/app/api/v1/__pycache__/
+/backend/app/core/__pycache__/
+
 
 # --- Frontend / Node ---
 node_modules/
