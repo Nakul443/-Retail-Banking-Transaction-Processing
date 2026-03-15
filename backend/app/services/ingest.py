@@ -54,6 +54,10 @@ async def process_transaction_json(file: UploadFile):
     # convert string to python list
     data = json.loads(string_data)
 
+    # We look for the "batch" key at the top level of the JSON.
+    # If it's not there, we'll fall back to "UNKNOWN_BATCH".
+    global_batch_id = data.get("batch", "UNKNOWN_BATCH")  # Get batch ID from the file, or use a default if not present
+
     # SAFETY CHECK: If the JSON is just one object, put it in a list
     # ensure data is a list of transactions, even if the user uploaded a single transaction as a JSON object
     # If the JSON is a dictionary and has a "transactions" key, 
@@ -117,8 +121,8 @@ async def process_transaction_json(file: UploadFile):
                     # map JSON fields to Database columns
                     "transaction_id": ident["transaction_id"],
                     "reference_number": ident["reference_number"],
-                    "batch_id": ident["batch_id"],
                     "account_number": acc_info["account_number"],
+                    "batch_id": global_batch_id,
                     
                     "transaction_datetime": datetime.fromisoformat(details["transaction_datetime"]),
                     "transaction_type": details["transaction_type"],
