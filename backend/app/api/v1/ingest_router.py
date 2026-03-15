@@ -1,5 +1,6 @@
 # door (endpoint) for ingesting transaction data from a JSON file
 # this file defines the API route for uploading transaction data, and calls the service function to process the file.
+# only job is to group routes related to "Getting data into the system."
 
 from fastapi import APIRouter, UploadFile, File
 from app.services.ingest import process_transaction_json
@@ -17,5 +18,3 @@ async def upload_transactions(file: UploadFile = File(...)):
         "message": "Upload successful",
         "records_processed": count
     }
-
-
